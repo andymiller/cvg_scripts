@@ -1,6 +1,7 @@
 from boxm2_scene_adaptor import *; 
 from vil_adaptor import *;
 from vpgl_adaptor import *;
+from bbas_adaptor import *
 import random, os, sys, scene_registry;  
 from optparse import OptionParser
 
@@ -29,7 +30,7 @@ NJ=720
 
 #should initialize a GPU
 os.chdir(scene_root);
-scene_path = os.getcwd() + "/" + model_name;
+scene_path = os.getcwd() + "/" + model_name
 scene = boxm2_scene_adaptor(scene_path, GPU);  
 
 #init trajectory 
@@ -52,6 +53,9 @@ for x in range(0, MAX_FRAMES, 1):
   bimg   = convert_image(expimg); 
   exp_fname = trajDir + "/exp_%(#)03d.png"%{"#":x};
   save_image(bimg, exp_fname); 
+
+  #clean up
+  remove_from_db([expimg, bimg])
 
 #mencoder "mf://*.png" -mf fps=18 -o demo.avi -ovc lavc -lavcopts vcodec=msmpeg4v2:vbitrate=24000000
 

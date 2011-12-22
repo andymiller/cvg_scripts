@@ -2,6 +2,7 @@ import random, os, sys, scene_registry;
 from boxm2_scene_adaptor import *; 
 from vil_adaptor import *;
 from vpgl_adaptor import *;
+from bbas_adaptor import *;
 from change.helpers import *
 from glob import glob
 from optparse import OptionParser
@@ -93,6 +94,9 @@ for p in range(0,NUMPASSES):
     #filter
     # if x%20==0 and x < FILTER_MAX:
     # scene.median_filter()
+    
+    #clean up
+    remove_from_db([img, pcam])
 
   scene.write_cache();
    
