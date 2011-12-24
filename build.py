@@ -18,6 +18,7 @@ parser.add_option("-p", "--passes", action="store", type="int", dest="passes", d
 parser.add_option("-r", "--refineoff", action="store_true", dest="norefine", default=False, help="turn refine off")
 parser.add_option("-m", "--mask", action="store", dest="mask", default="", help="mask file path")
 parser.add_option("-c", "--buildchange", action="store_true", dest="buildchange", default=False, help="build change images?")
+parser.add_option("-i", "--imgtype", action="store", dest="itype", default="png", help="specify image type (tif, png, tiff, TIF)")
 (options, args) = parser.parse_args()
 print options
 print args
@@ -45,12 +46,12 @@ if not os.path.exists(scene_path):
 scene = boxm2_scene_adaptor (scene_path, GPU);  
 
 # Get list of imgs and cams
-train_imgs = os.getcwd() + "/nvm_out/imgs/*.png"
+train_imgs = os.getcwd() + "/nvm_out/imgs/*." + options.itype
 train_cams = os.getcwd() + "/nvm_out/cams_krt/*.txt"
 imgs = glob(train_imgs)
 cams = glob(train_cams)
 if BUILD_CHANGE_IMGS and os.path.exists(os.getcwd() + "/change/imgs/") and os.path.exists(os.getcwd() + "/change/cams_krt/"):
-  change_imgs = os.getcwd() + "/change/imgs/*.png"
+  change_imgs = os.getcwd() + "/change/imgs/*." + options.itype
   change_cams = os.getcwd() + "/change/cams_krt/*.txt"
   imgs += glob(change_imgs)
   cams += glob(change_cams)
