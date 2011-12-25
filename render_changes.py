@@ -10,7 +10,7 @@ from optparse import OptionParser
 #scene is given as first arg, figure out paths        #
 parser = OptionParser()
 parser.add_option("-s", "--scene", action="store", type="string", dest="scene", help="specify scene name")
-parser.add_option("-m", "--model", action="store", type="string", dest="model", default="model",help="model name (model, model_fixed, model_full)")
+parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="model/uscene.xml",help="model/scene name (eg model/uscene.xml))")
 parser.add_option("-t", "--type",  action="store", type="string", dest="type",  default="all",  help="specify changetype ("", raybelief, twopass)")
 parser.add_option("-n", "--nvals", action="store", type="string", dest="nvals", default="135",  help="specify n values (1, 13, 35, 135, etc)")
 parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
@@ -22,13 +22,10 @@ print args
 #scene name, model name
 scene_name = options.scene              #
 scene_root = scene_registry.scene_root( scene_name ); #
-MODEL      = options.model  # directory name for model
+MODEL      = options.xml.split("/")[0]
 
 #set gpu
-if options.gpu in ["gpu0", "gpu1"]:
-  GPU = options.gpu
-else: 
-  GPU = "gpu1"
+GPU = options.gpu
 
 #n values to check for
 ns = []
@@ -56,7 +53,7 @@ if not os.path.exists(scene_root + "/change/"):
   print "Model @ ", scene_root, " has no change directory"
   sys.exit(-1)
 os.chdir(scene_root + "/change/")
-scene_path = "../" + MODEL + "/uscene.xml";  
+scene_path = "../" + options.xml 
 scene = boxm2_scene_adaptor(scene_path, GPU);  
 
 ##################################
