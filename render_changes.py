@@ -73,7 +73,7 @@ if ONLY_GTS:
   imgs.sort(); cams.sort(); gts.sort(); 
 else :
   cimgDir = os.getcwd() + "/imgs/"
-  if os.path.exsists(cimgDir):
+  if os.path.exists(cimgDir):
     imgs = glob(os.getcwd() + "/imgs/*." + options.imgType); imgs.sort(); 
     cams = glob(os.getcwd() + "/cams_krt/*.txt"); cams.sort(); 
   else:
