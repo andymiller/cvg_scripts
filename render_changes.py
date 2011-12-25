@@ -15,6 +15,7 @@ parser.add_option("-t", "--type",  action="store", type="string", dest="type",  
 parser.add_option("-n", "--nvals", action="store", type="string", dest="nvals", default="135",  help="specify n values (1, 13, 35, 135, etc)")
 parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
 parser.add_option("-o", "--gt",    action="store_true",           dest="gt",    default=False,  help="only render ground truth images")
+parser.add_option("-i", "--imgType", action="store", type="string", dest="imgType", default="png", help="change image types (png, tif, tiff, etc)")
 (options, args) = parser.parse_args()
 print options
 print args
@@ -60,19 +61,26 @@ scene = boxm2_scene_adaptor(scene_path, GPU);
 #load up images/cams to run CD on
 ##################################
 if ONLY_GTS: 
-  gts = glob(os.getcwd() + "/gt/*.png"); gts.sort(); 
+  gts = glob(os.getcwd() + "/gt/*."+options.imgType); gts.sort(); 
   imgs = []; cams = []
   for gt in gts: 
     imgnum, ext = os.path.splitext( basename(gt) ); 
     bname = imgnum.split("_"); 
-    img = os.getcwd() + "/imgs/" + bname[1] + ".png"; 
+    img = os.getcwd() + "/imgs/" + bname[1] + "." + options.imgType; 
     cam = os.getcwd() + "/cams_krt/" + bname[1] + "_cam.txt"; 
     imgs.append( img ); 
     cams.append( cam ); 
   imgs.sort(); cams.sort(); gts.sort(); 
-else : 
-  imgs = glob(os.getcwd() + "/imgs/*.png"); imgs.sort(); 
-  cams = glob(os.getcwd() + "/cams_krt/*.txt"); cams.sort(); 
+else :
+  cimgDir = os.getcwd() + "/imgs/"
+  if os.path.exsists(cimgDir):
+    imgs = glob(os.getcwd() + "/imgs/*." + options.imgType); imgs.sort(); 
+    cams = glob(os.getcwd() + "/cams_krt/*.txt"); cams.sort(); 
+  else:
+    imgs = glob(scene_path + "/nvm_out/*." + options.imgType)
+    cams = glob(scene_path + "/nvm_out/cams_krt/*.txt")
+  imgs.sort()
+  cams.sort()
 assert len(imgs) == len(cams)
 
 ###########################################################
