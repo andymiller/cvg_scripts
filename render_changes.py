@@ -53,7 +53,7 @@ ONLY_GTS   = options.gt
 if not os.path.exists(scene_root + "/change/"):
   print "Model @ ", scene_root, " has no change directory"
   sys.exit(-1)
-os.chdir(scene_root + "/change/")
+os.chdir(scene_root)
 scene_path = scene_root + "/" + options.xml 
 scene = boxm2_scene_adaptor(scene_path, GPU);  
 
@@ -61,21 +61,21 @@ scene = boxm2_scene_adaptor(scene_path, GPU);
 #load up images/cams to run CD on
 ##################################
 if ONLY_GTS: 
-  gts = glob(os.getcwd() + "/gt/*."+options.imgType); gts.sort(); 
+  gts = glob(os.getcwd() + "/change/gt/*."+options.imgType); gts.sort(); 
   imgs = []; cams = []
   for gt in gts: 
     imgnum, ext = os.path.splitext( basename(gt) ); 
     bname = imgnum.split("_"); 
-    img = os.getcwd() + "/imgs/" + bname[1] + "." + options.imgType; 
-    cam = os.getcwd() + "/cams_krt/" + bname[1] + "_cam.txt"; 
+    img = os.getcwd() + "/change/imgs/" + bname[1] + "." + options.imgType; 
+    cam = os.getcwd() + "/change/cams_krt/" + bname[1] + "_cam.txt"; 
     imgs.append( img ); 
     cams.append( cam ); 
   imgs.sort(); cams.sort(); gts.sort(); 
 else :
-  cimgDir = os.getcwd() + "/imgs/"
+  cimgDir = scene_root + "/change/imgs/"
   if os.path.exists(cimgDir):
-    imgs = glob(os.getcwd() + "/imgs/*." + options.imgType); imgs.sort(); 
-    cams = glob(os.getcwd() + "/cams_krt/*.txt"); cams.sort(); 
+    imgs = glob(scene_root + "/change/imgs/*." + options.imgType); imgs.sort(); 
+    cams = glob(scene_root + "/change/cams_krt/*.txt"); cams.sort(); 
   else:
     print "using model building images"
     imgs = glob(scene_root + "/nvm_out/imgs/*." + options.imgType)
@@ -90,7 +90,7 @@ assert len(imgs) == len(cams)
 # save images in <model_dir>/change/change_imgs/results_<model_type>_<change_type>/cd_NxN/
 ###########################################################
 for CHANGETYPE in CHANGETYPES :
-  outRoot = os.getcwd() + "/change_imgs/"
+  outRoot = scene_root + "/change/change_imgs/"
   for n in ns: 
     outdir = outRoot + "results_" + MODEL + "_" + CHANGETYPE + "/cd_%(#)dx%(#)d/"%{"#":n}; 
     render_changes(scene, imgs, cams, outdir, n, CHANGETYPE); 

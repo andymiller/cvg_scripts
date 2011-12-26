@@ -12,25 +12,33 @@ from optparse import OptionParser
 #scene is given as first arg, figure out paths        #
 parser = OptionParser()
 parser.add_option("-s", "--scene", action="store", type="string", dest="scene", help="specify scene name")
-parser.add_option("-m", "--model", action="store", type="string", dest="model", default="model",help="model name (model, model_fixed, model_full)")
+parser.add_option("-x", "--xml", action="store", type="string", dest="xml", default="model/uscene.xml",help="model and xml scene (model/uscene.xml)")
 parser.add_option("-k", "--kl",    action="store_true",           dest="kl",    default=False,  help="do blob-wise kl div elimination")
-parser.add_option("-l", "--lower", action="store", type="float",  dest="lower", default=.1,     help="lower blob threshold")
-parser.add_option("-u", "--upper", action="store", type="float",  dest="upper", default=.9,     help="upper blob threshold")
+parser.add_option("-r", "--range", action="store", type="string", dest="range", default=".1:.9:.05", help="specify threshold range as low:high:increment")
 parser.add_option("-t", "--type",  action="store", type="string", dest="type",  default="all",  help="specify changetype ("", raybelief, twopass)")
 parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
 parser.add_option("-o", "--gt",    action="store_true",           dest="gt",    default=False,  help="only render ground truth images")
 parser.add_option("-n", "--nvals", action="store", type="string", dest="nvals", default="135",  help="specify n values (1, 13, 35, 135, etc)")
+parser.add_option("-i", "--imgType",action="store", type="string", dest="imgType", default="png",  help="specify type of input images (for visualization, png, tif, tiff, etc)");
 (options, args) = parser.parse_args()
 print options
 print args
 print options.scene
 
+#prep scene name/model name
 scene_name = options.scene               #
 scene_root = scene_registry.scene_root( scene_name ); #
-MODEL      = options.model  # directory name for model
+MODEL      = options.xml.split("/")[0]
+
+#other options
 DO_KL_ELIMINATION = options.kl;
-LOWER = options.lower
-UPPER = options.upper
+rng = options.range.split(":")
+if len(rng) < 3:
+  print "Bad range: ", options.range, 
+  sys.exit(-1)
+LOWER = float( rng[0] ) 
+UPPER = float( rng[1] )
+STEP  = float( rng[2] )
 ONLY_GTS = options.gt         # render only GT images, or all change imgs
 
 #set gpu
@@ -60,7 +68,7 @@ if not os.path.exists(scene_root + "/change/"):
   print "Model @ ", scene_root, " has no change directory"
   sys.exit(-1)
 os.chdir(scene_root + "/change/")
-scene_path = "../" + MODEL + "/uscene.xml";  
+scene_path = scene_root + "/" + options.xml;  
 if not os.path.exists(scene_path):
   print "Scene @ ", scene_path, " does not exist!!!!!"
   sys.exit(-1)
@@ -69,8 +77,16 @@ scene = boxm2_scene_adaptor(scene_path,GPU);
 #################################
 #in images (new frames) and depth imgs
 #################################
-inimgs = glob(os.getcwd() + "/imgs/*.png"); inimgs.sort(); 
-incams = glob(os.getcwd() + "/cams_krt/*.txt"); incams.sort();
+cimgDir = scene_root + "/change/imgs/"
+if os.path.exists(cimgDir):
+  inimgs = glob(scene_root + "/change/imgs/*." + options.imgType) 
+  incams = glob(scene_root + "/change/cams_krt/*.txt") 
+else:
+  print "using model building images"
+  inimgs = glob(scene_root + "/nvm_out/imgs/*." + options.imgType)
+  incams = glob(scene_root + "/nvm_out/cams_krt/*.txt")
+inimgs.sort()
+incams.sort()
 assert len(inimgs) == len(incams)
 
 #depth images for r scene and u scene
@@ -105,7 +121,7 @@ for d in result_dirs:
     os.makedirs(imDir);   
 
   #render thresholded images
-  for thresh in numpy.arange(LOWER, UPPER, .05): 
+  for thresh in numpy.arange(LOWER, UPPER, STEP): 
     if DO_KL_ELIMINATION:
       outdir = imDir + "/blobs_kl_" + str(thresh) + "/"; 
     else:
