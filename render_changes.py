@@ -54,7 +54,7 @@ if not os.path.exists(scene_root + "/change/"):
   print "Model @ ", scene_root, " has no change directory"
   sys.exit(-1)
 os.chdir(scene_root + "/change/")
-scene_path = "../" + options.xml 
+scene_path = scene_root + "/" + options.xml 
 scene = boxm2_scene_adaptor(scene_path, GPU);  
 
 ##################################
@@ -77,10 +77,12 @@ else :
     imgs = glob(os.getcwd() + "/imgs/*." + options.imgType); imgs.sort(); 
     cams = glob(os.getcwd() + "/cams_krt/*.txt"); cams.sort(); 
   else:
-    imgs = glob(scene_path + "/nvm_out/*." + options.imgType)
-    cams = glob(scene_path + "/nvm_out/cams_krt/*.txt")
+    print "using model building images"
+    imgs = glob(scene_root + "/nvm_out/imgs/*." + options.imgType)
+    cams = glob(scene_root + "/nvm_out/cams_krt/*.txt")
   imgs.sort()
   cams.sort()
+print imgs
 assert len(imgs) == len(cams)
 
 ###########################################################
