@@ -19,6 +19,7 @@ parser.add_option("-r", "--refineoff", action="store_true", dest="norefine", def
 parser.add_option("-m", "--mask", action="store", dest="mask", default="", help="mask file path")
 parser.add_option("-c", "--buildchange", action="store_true", dest="buildchange", default=False, help="build change images?")
 parser.add_option("-i", "--imgtype", action="store", dest="itype", default="png", help="specify image type (tif, png, tiff, TIF)")
+parser.add_option("-v", "--variance", action="store", dest="var", default="-1.0", help="Specify fixed mog3 variance, otherwise learn it")
 (options, args) = parser.parse_args()
 print options
 print args
@@ -86,7 +87,7 @@ for p in range(0,NUMPASSES):
     img, ni, nj = load_image (imgs[i]); 
 
     #update call
-    scene.update(pcam, img, True, mask); 
+    scene.update(pcam, img, True, mask, options.var); 
 
     #refine
     if idx%REFINE_INTERVAL==0 and REFINE_ON:
