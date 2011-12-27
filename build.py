@@ -16,10 +16,10 @@ parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", 
 parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
 parser.add_option("-p", "--passes", action="store", type="int", dest="passes", default=2, help="number of passes over dataset")
 parser.add_option("-r", "--refineoff", action="store_true", dest="norefine", default=False, help="turn refine off")
-parser.add_option("-m", "--mask", action="store", dest="mask", default="", help="mask file path")
+parser.add_option("-m", "--mask", action="store", type="string", dest="mask", default="", help="mask file path")
 parser.add_option("-c", "--buildchange", action="store_true", dest="buildchange", default=False, help="build change images?")
-parser.add_option("-i", "--imgtype", action="store", dest="itype", default="png", help="specify image type (tif, png, tiff, TIF)")
-parser.add_option("-v", "--variance", action="store", dest="var", default="-1.0", help="Specify fixed mog3 variance, otherwise learn it")
+parser.add_option("-i", "--imgtype", action="store", type="string", dest="itype", default="png", help="specify image type (tif, png, tiff, TIF)")
+parser.add_option("-v", "--variance", action="store", type="float", dest="var", default="-1.0", help="Specify fixed mog3 variance, otherwise learn it")
 (options, args) = parser.parse_args()
 print options
 print args
@@ -87,8 +87,9 @@ for p in range(0,NUMPASSES):
     img, ni, nj = load_image (imgs[i]); 
 
     #update call
-    scene.update(pcam, img, True, mask, options.var); 
+    scene.update(pcam, img, True, mask, "",  options.var); 
 
+    #
     #refine
     if idx%REFINE_INTERVAL==0 and REFINE_ON:
       scene.refine();
