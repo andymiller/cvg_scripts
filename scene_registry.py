@@ -29,6 +29,9 @@ data_candidates = [
 
 
 def scene_root(scene_name):
+  if not scene_name or scene_name == "": 
+    print "NO SCENE GIVEN!"
+    sys.exit(-1)
   for cand in data_candidates:
     if os.path.exists( cand+"/"+scene_name ):
       return cand+"/"+scene_name
