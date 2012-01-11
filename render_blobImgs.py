@@ -20,6 +20,7 @@ parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   
 parser.add_option("-o", "--gt",    action="store_true",           dest="gt",    default=False,  help="only render ground truth images")
 parser.add_option("-n", "--nvals", action="store", type="string", dest="nvals", default="135",  help="specify n values (1, 13, 35, 135, etc)")
 parser.add_option("-i", "--imgType",action="store", type="string", dest="imgType", default="png",  help="specify type of input images (for visualization, png, tif, tiff, etc)");
+parser.add_option("-l", "--kl_thresh",action="store",type="float", dest="kl_thresh",default=.2, help="specify KL Elimination min value (percent of max kl score necessary to still register as change)")
 (options, args) = parser.parse_args()
 print options
 print args
@@ -32,6 +33,8 @@ MODEL      = options.xml.split("/")[0]
 
 #other options
 DO_KL_ELIMINATION = options.kl;
+SAVE_KL = True
+kl_thresh = options.kl_thresh
 rng = options.range.split(":")
 if len(rng) < 3:
   print "Bad range: ", options.range, 
@@ -113,7 +116,7 @@ for imgDir in CHANGE_IMG_DIRS :
 result_dirs.sort(); 
 print result_dirs
 for d in result_dirs: 
-
+  print "Rendering blob images for ", d
   #make appropriate dir 
   splitpath = d.split('/'); 
   imDir = blobDir + splitpath[-2] + "_" + splitpath[-1] + "/"; 
@@ -156,7 +159,7 @@ for d in result_dirs:
         expImg = scene.render(inCam); 
         expDx, expDy, expMag = gradient(expImg); 
         #kl img and new blob img
-        kl_img, new_blobs = blobwise_kl_div(inMag, expMag, bimg); 
+        kl_img, new_blobs = blobwise_kl_div(inMag, expMag, bimg, kl_thresh); 
         oldB = bimg;
         bimg = new_blobs
 
@@ -169,7 +172,9 @@ for d in result_dirs:
       imgnum, ext = os.path.splitext( basename(img) ); 
       img_name  = outdir + "/" + imgnum + ".png"; 
       save_image(vis_img, img_name); 
-      
+      if DO_KL_ELIMINATION and SAVE_KL:
+        save_image(kl_img, outdir + "/kl_" + imgnum + ".tiff");
+
       #######################
       #clean up images 
       remove_from_db( [inImg, cimg, vis_img] );

@@ -10,7 +10,7 @@ echo Model: $1/$2 img_type $img
 echo ChangeType: $5
 
 echo Building model on gpu $1
-python $scripts/build.py -s $model -x $scene -g $gpu -i $img -p 3 -v .01
+python $scripts/build.py -s $model -x $scene -g $gpu -i $img -p 2 -v .01
 python $scripts/build.py -s $model -x $scene -g $gpu -i $img -p 2 -v .01 -r
 
 echo Rendering change images

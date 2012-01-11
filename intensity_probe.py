@@ -111,8 +111,12 @@ class App:
         
         #############################################
         #set up plot frame 
-        firstImg = Image.open(imgList[0]); 
-        self.frame = Frame(self.master, height=firstImg.size[1], width=firstImg.size[0], bg='blue');
+        firstImg = Image.open(imgList[0]);
+        print "Image size: ", firstImg.size
+        self.reduceFactor = max(firstImg.size[0]/640.0, firstImg.size[1]/480.0)
+        self.ni = int(firstImg.size[0]/self.reduceFactor + .5) 
+        self.nj = int(firstImg.size[1]/self.reduceFactor + .5)
+        self.frame = Frame(self.master, height=self.nj, width=self.ni, bg='blue');
         self.frame.grid_propagate(0)
         self.frame.pack();
         self.frame.grid(row=0, column=0)    
@@ -129,7 +133,7 @@ class App:
 
         #############################################
         #set up button frame 
-        self.bFrame = Frame(self.master, height=firstImg.size[1], width=firstImg.size[0])
+        self.bFrame = Frame(self.master, height=self.nj, width=self.ni)
         self.bFrame.grid_propagate(0)
         self.bFrame.pack()
         self.bFrame.grid(row=1, column=0)
@@ -144,6 +148,9 @@ class App:
         Label(self.bFrame, textvariable=self.stdLabel).pack()
         self.meanLabel = StringVar()
         Label(self.bFrame, textvariable=self.meanLabel).pack()
+        #label for 3d point
+        self.pointLabel = StringVar()
+        Label(self.bFrame, textvariable=self.pointLabel).pack()
 
         ##############################################        
         #set up images frames (should be 4 or so images)
@@ -154,7 +161,7 @@ class App:
           for j in range(2):
             labString = StringVar()
             label = Label(self.master, textvariable=labString)
-            frame1 = LabelFrame(self.master, labelwidget=label, height=firstImg.size[1], width=firstImg.size[0], bg='green')
+            frame1 = LabelFrame(self.master, labelwidget=label, height=self.nj, width=self.ni, bg='green')
             frame1.pack();
             frame1.grid_propagate(0)
             frame1.grid(row=i, column=j+1, sticky=NW)      
@@ -180,18 +187,21 @@ class App:
       cams = []
       for iFrame in self.frames:
         if iFrame.lastClick : 
-          uvs.append(iFrame.lastClick)
+          uv = numpy.multiply(iFrame.lastClick,self.reduceFactor)
+          uvs.append(uv)
           cam = load_perspective_camera(self.camList[iFrame.currImg])
           cams.append(cam)
       point = get_3d_from_cams(cams, uvs)
       self.point3d = point;
-          
+      self.pointLabel.set("3d Point: " + str(self.point3d))
+
       # project 3d point into each image, and gather intensities   
       values = []
       ims    = []
       for idx, img in enumerate(self.imgList):
         cam = load_perspective_camera(self.camList[idx])
         imgPoint = project_point(cam, point[0], point[1], point[2])
+        imgPoint = numpy.divide(imgPoint, self.reduceFactor)
         self.allUVs.append(imgPoint)
         
         #grab float intensity value at this point 
@@ -246,7 +256,8 @@ class App:
             print "16 bit image, converting to 8 bit"
             img.mode = 'I'
             img = img.point(lambda i:i*(1./256.)).convert("RGB");
-          
+          img = img.resize((self.ni, self.nj))
+
         #iframe keeps track of its image
         iFrame.image = img
          

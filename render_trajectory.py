@@ -13,6 +13,7 @@ parser.add_option("-s", "--scene", action="store", type="string", dest="scene", 
 parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
 parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
 parser.add_option("-m", "--maxFrames", action="store", type="int", dest="maxFrames", default=500, help="max number of frames to render")
+parser.add_option("-r", "--radius", action="store", type="float", dest="radius", default=1.0, help="distance from cam center to model center")
 (options, args) = parser.parse_args()
 print options
 print args
@@ -32,11 +33,13 @@ NJ=720
 os.chdir(scene_root);
 scene_path = os.getcwd() + "/" + model_name
 scene = boxm2_scene_adaptor(scene_path, GPU);  
+(sceneMin, sceneMax) = scene.bounding_box(); 
 
 #init trajectory 
 startInc = 38.0; 
 endInc = 38.0; 
-radius   = 22.0; 
+radius   = max(options.radius, 1.4*(sceneMax[0]-sceneMin[0])); 
+radius = 400
 trajectory = init_trajectory(scene.scene, startInc, endInc, radius, NI, NJ);
 trajDir = os.getcwd() + "/trajectory/"
 if not os.path.exists(trajDir):
