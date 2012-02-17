@@ -14,6 +14,7 @@ parser = OptionParser()
 parser.add_option("-s", "--scene", action="store", type="string", dest="scene", help="specify scene name")
 parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
 parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
+parser.add_option("-b", "--buildImgs", action="store", type="string", dest="buildImgs", default="nvm_out", help="Specify location of build images, default=nvm_out")
 parser.add_option("-p", "--passes", action="store", type="int", dest="passes", default=2, help="number of passes over dataset")
 parser.add_option("-r", "--refineoff", action="store_true", dest="norefine", default=False, help="turn refine off")
 parser.add_option("-m", "--mask", action="store", type="string", dest="mask", default="", help="mask file path")
@@ -49,8 +50,8 @@ if not os.path.exists(scene_path):
 scene = boxm2_scene_adaptor (scene_path, GPU);  
 
 # Get list of imgs and cams
-train_imgs = os.getcwd() + "/nvm_out/imgs/*." + options.itype
-train_cams = os.getcwd() + "/nvm_out/cams_krt/*.txt"
+train_imgs = os.getcwd() + "/" + options.buildImgs + "/imgs/*." + options.itype
+train_cams = os.getcwd() + "/" + options.buildImgs + "/cams_krt/*.txt"
 imgs = glob(train_imgs)
 cams = glob(train_cams)
 if BUILD_CHANGE_IMGS and os.path.exists(os.getcwd() + "/change/imgs/") and os.path.exists(os.getcwd() + "/change/cams_krt/"):
