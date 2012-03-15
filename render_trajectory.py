@@ -39,7 +39,6 @@ scene = boxm2_scene_adaptor(scene_path, GPU);
 startInc = 38.0; 
 endInc = 38.0; 
 radius   = max(options.radius, 1.4*(sceneMax[0]-sceneMin[0])); 
-radius = 400
 trajectory = init_trajectory(scene.scene, startInc, endInc, radius, NI, NJ);
 trajDir = os.getcwd() + "/trajectory/"
 if not os.path.exists(trajDir):

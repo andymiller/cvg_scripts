@@ -38,7 +38,7 @@ boxm2_batch.init_process("boxm2CppComputeDerivativeProcess");
 boxm2_batch.set_input_from_db(0,scene.scene);
 boxm2_batch.set_input_from_db(1,scene.cpu_cache);
 boxm2_batch.set_input_float(2,options.prob); #prob threshold
-boxm2_batch.set_input_float(3,0); #normal t
+boxm2_batch.set_input_float(3,-1); #normal t
 boxm2_batch.set_input_string(4, "/home/acm/vxl/src/contrib/brl/bseg/bvpl/doc/taylor2_5_5_5/Ix.txt");
 boxm2_batch.set_input_string(5, "/home/acm/vxl/src/contrib/brl/bseg/bvpl/doc/taylor2_5_5_5/Iy.txt");
 boxm2_batch.set_input_string(6, "/home/acm/vxl/src/contrib/brl/bseg/bvpl/doc/taylor2_5_5_5/Iz.txt");
@@ -59,8 +59,8 @@ boxm2_batch.set_input_from_db(0,scene.scene);
 boxm2_batch.set_input_from_db(1,scene.cpu_cache);
 boxm2_batch.set_input_string(2, options.output);
 boxm2_batch.set_input_bool(3,1);  #output prob vis etc?
-boxm2_batch.set_input_float(4,0);  #vis threshold?
-boxm2_batch.set_input_float(5,0); #normal magnitude threshold
+boxm2_batch.set_input_float(4,-1);  #vis threshold?
+boxm2_batch.set_input_float(5,-1); #normal magnitude threshold
 boxm2_batch.set_input_string(6, pointType);
 boxm2_batch.run_process();
 

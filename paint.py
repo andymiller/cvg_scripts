@@ -17,6 +17,7 @@ parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   
 parser.add_option("-p", "--passes", action="store", type="int", dest="passes", default=2, help="number of passes over dataset")
 #parser.add_option("-m", "--mask", action="store", type="string", dest="mask", default="", help="mask file path")
 parser.add_option("-i", "--imgtype", action="store", type="string", dest="itype", default="png", help="specify image type (tif, png, tiff, TIF)")
+parser.add_option("-l", "--imgLoc", action="store", type="string", dest="imgLoc", default="nvm_out", help="specify location of image, camera directory")
 parser.add_option("-n", "--numskip", action="store", type="int", dest="skip", default=1, help="Specify which images to use (1=all, 2=every other, ect)")
 (options, args) = parser.parse_args()
 print options
@@ -41,8 +42,8 @@ if not os.path.exists(scene_path):
 scene = boxm2_scene_adaptor (scene_path, GPU);  
 
 # Get list of imgs and cams
-train_imgs = os.getcwd() + "/nvm_out/imgs/*." + options.itype
-train_cams = os.getcwd() + "/nvm_out/cams_krt/*.txt"
+train_imgs = os.getcwd() + "/" + options.imgLoc + "/imgs/*." + options.itype
+train_cams = os.getcwd() + "/" + options.imgLoc + "/cams_krt/*.txt"
 imgs = glob(train_imgs)
 cams = glob(train_cams)
 imgs.sort()
