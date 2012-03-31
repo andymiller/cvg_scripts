@@ -1,26 +1,54 @@
 import numpy as np
 import pylab as pl
+from sklearn.decomposition import PCA
+from sklearn.lda import LDA
 
-def features(eoPixels, irPixels):
-  #gbDiff = green_blue_difference(eoPixels, irPixels)
-  irDiff = ir_difference(eoPixels, irPixels)
+
+class LDAFeatures:
+
+  def __init__(self):
+    self.lda = None
+
+  def features(self, eoPixels, irPixels, gt=None):
+    #grab feature stack
+    fullFeatures = naive_features(eoPixels, irPixels)
+
+    #if the LDA from ground truth exists already, transform new features
+    if gt==None and self.lda != None:
+      return self.lda.transform(fullFeatures)
+    assert gt != None
+
+    #otherwise, train LDA
+    self.lda = LDA(n_components=2).fit(fullFeatures,gt)
+    return self.lda.transform(fullFeatures)
+
+class PCAFeatures:
+  def features(self, eoPixels, irPixels):
+    fullFeatures = naive_features(eoPixels, irPixels)
+    self.pca = PCA(n_components=2).fit(fullFeatures)
+    return self.pca.transform(fullFeatures)
+
+
+def naive_features(eoPixels, irPixels):
+  """Stacks a bunch of ratios/differences into a 
+     high dimensional feature vector
+  """
+  #create sqr differences features for each channel
+  allPix = np.column_stack( (eoPixels, irPixels) )
+  intensity = np.sum(eoPixels[:,:3]) + irPixels[:,0] #total intensity
+  diffs = []
+  for i in range(4):
+    for j in range(4):
+      if i==j: continue
+      diff = (allPix[:,i] - allPix[:,j]) / intensity
+      diffs.append(diff)
+
   rRatio = pixelRatio(eoPixels, irPixels, "red")
   gRatio = pixelRatio(eoPixels, irPixels, "green")
-  #bRatio = pixelRatio(eoPixels, irPixels, "blue")
-  #return np.column_stack( (gbDiff, irDiff, rRatio, bRatio, gRatio) )
-  return np.column_stack( (gRatio, rRatio) )
+  bRatio = pixelRatio(eoPixels, irPixels, "blue")
+  iRatio = pixelRatio(eoPixels, irPixels, "ir")
+  return np.column_stack( [rRatio, bRatio, gRatio, iRatio]+diffs )
 
-def ir_difference(eoPixels, irPixels):
-  irdiff = irPixels[:,0] - eoPixels[:,2]
-  intensity = np.sum(eoPixels[:,:3]) + irPixels[:,0]
-  return irdiff/intensity
-
-def green_blue_difference(eoPixels, irPixels):
-  """Assuming eo and ir pixes are passed in, returns array of green blue diff"""
-  assert eoPixels.shape[0] == irPixels.shape[0]
-  gbdiff = eoPixels[:,1] - eoPixels[:,2]
-  intensity = np.sum(eoPixels[:,:3]) + irPixels[:,0]
-  return gbdiff / intensity
 
 def pixelRatio(eoPixels, irPixels, pixel_type="red"):
   """Green / (Green + Red + Blue + IR)"""

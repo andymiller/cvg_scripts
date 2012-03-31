@@ -23,6 +23,7 @@ parser.add_option("-i", "--imgtype", action="store", type="string", dest="itype"
 parser.add_option("-v", "--variance", action="store", type="float", dest="var", default="-1.0", help="Specify fixed mog3 variance, otherwise learn it")
 parser.add_option("-d", "--downSamp", action="store", type="float", dest="downSamp", default="1.0", help="Specify if images/cams should be downsampled before updating")
 parser.add_option("-n", "--numSkip", action="store", type="int", dest="skip", default=1, help="Specify how many images to use in each pass (1=every, 2=every other...)")
+parser.add_option("-a", "--render", action="store_true", dest="render", default=False, help="Render images from update viewpoints")
 (options, args) = parser.parse_args()
 print options
 print args
@@ -80,7 +81,7 @@ else:
 for p in range(0,NUMPASSES):
 
   #update using every image once
-  frames = range(0,len(imgs)-1)[::options.skip]; 
+  frames = range(0,len(imgs))[::options.skip]; 
   random.shuffle(frames); 
   for idx, i in enumerate(frames): 
     print "Pass: ", p, ", Iteration ", idx, " of ", len(frames)
@@ -96,9 +97,15 @@ for p in range(0,NUMPASSES):
       remove_from_db([img, pcam])
       img = dimg
       pcam = dcam
+      ni,nj = dni, dnj
 
     #update call
     scene.update(pcam, img, True, mask, "",  options.var); 
+
+    if options.render:
+      rimg = scene.render(pcam, ni, nj)
+      save_image(rimg, "update_%i.tiff"%(idx))
+
     #refine
     if idx%REFINE_INTERVAL==0 and REFINE_ON:
       scene.refine();

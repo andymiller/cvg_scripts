@@ -6,6 +6,16 @@ import numpy, random, os, sys, math, scene_registry;
 from optparse import OptionParser
 
 
+def pointsFromFile(fname):
+  f = open(fname, 'r')
+  numPts = int(f.readline())
+  print numPts
+  pts = []
+  for line in f:
+    pt = [float(x) for x in line.strip().split()]
+    pts.append(pt)
+  return pts
+
 def render_save(cam):
   """method for rendering/saving/incrementing globalIdx"""
   global globalIdx
@@ -86,8 +96,9 @@ if __name__ == "__main__":
   parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="model/uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
   parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
   parser.add_option("-m", "--maxFrames", action="store", type="int", dest="maxFrames", default=500, help="max number of frames to render")
-  parser.add_option("-r", "--radius", action="store", type="float", dest="radius", default=10.0, help="starting cam radius")
+  parser.add_option("-r", "--radius", action="store", type="float", dest="radius", default=-1.0, help="starting cam radius")
   parser.add_option("-i", "--incline", action="store", type="string", dest="incline", default="38:45", help="incline change throughout spiral in degrees (ex 38:45)")
+  parser.add_option("-p", "--points", action="store", type="string", dest="pointsFile", default="", help="Include points file as center points of spirals (no file defaults to center of model)")
   (options, args) = parser.parse_args()
   print options
   print args
@@ -116,7 +127,10 @@ if __name__ == "__main__":
 
   #init trajectory, look at center point - this can drift
   startInc, endInc = [int(x) for x in options.incline.split(":")]
-  radius   = max(options.radius, 1.4*(sceneMax[0]-sceneMin[0])); 
+  if options.radius > 0.0:
+    radius = options.radius
+  else: 
+    radius = 1.4*(sceneMax[0]-sceneMin[0])  
   modCenter = numpy.add(sceneMax, sceneMin)/2.0
 
   #Generate camera params - fLenght, ppoint
@@ -127,8 +141,15 @@ if __name__ == "__main__":
   ####Render the various maneuvers###########
   ###########################################
   # Initialize list of look points to spiral around
-  pts = [ modCenter ]
-  #pts.append( (.2308, -.295, .0279) )
+  pts = []
+  if options.pointsFile != "":
+    pts = pointsFromFile(options.pointsFile)
+  else:
+    pts = [ modCenter ]
+  print "Rotating about points: ", pts
+  
+  #pts.append( (-.1, .3, -0.009446) ) #pts.append( (.2308, -.295, .0279) )
+  #pts.append( (-.5, -.5, 0.0) )
   #pts.append( (-.106, 0.297, .021) )
   globalIdx = 0
 
@@ -136,35 +157,45 @@ if __name__ == "__main__":
   currR = radius
   currInc = startInc
   currAz = -90.0
-  dr = 0.0 #- (radius/1.45) / options.maxFrames
+  dr = - (radius/1.45) / options.maxFrames
   dAz = 360.0 / options.maxFrames
   dInc = (endInc-startInc)/options.maxFrames
-  
   dcam = (dAz, dInc, dr)
+
+  #iterate over points
   for i in range(len(pts)):
     #render first spiral
     center = renderSpiral(pts[i], (currAz, currInc, currR), dcam, options.maxFrames)
   
     if i < len(pts)-1 : 
       #drift to next center
+      print '======DRIFTING======='
       cartCenter = drift(pts[0], pts[1], center, options.maxFrames/4)
       sphereCenter = cart2sphere( cartCenter, pts[1] )
-      #sphereCenter = (sphereCenter[0],-sphereCenter[1],sphereCenter[2])
-
-  #render next spiral
-  #numImg = options.maxFrames/2
-  #dcam = (360/numImg, 0, 0)
-  #center = renderSpiral(pts[1], sphereCenter,dcam,numImg) 
-  #
-  ##drift to next center
-  #cartCenter = drift(pts[1], pts[2], center, options.maxFrames/4)
-  #sphereCenter = cart2sphere( cartCenter, pts[2] )
+      sphereCenter = (sphereCenter[0],-sphereCenter[1],sphereCenter[2])
+    
+  #numImg = options.maxFrames
+  #sphereCenter = renderSpiral(pts[0], (currAz, currInc, currR), dcam, options.maxFrames)  
   ##sphereCenter = (sphereCenter[0],-sphereCenter[1],sphereCenter[2])
 
+  ##drift to next center
+  #cartCenter = drift(pts[0], pts[1], sphereCenter, numImg/4)
+  #sphereCenter = cart2sphere(cartCenter, pts[1])
+
   ##render next spiral
+  #numImg = options.maxFrames/2
+  #dcam = (360.0 / numImg, 0, 0)
+  #center = renderSpiral(pts[1], sphereCenter, dcam,numImg) 
+  
+  #drift to next center
+  #cartCenter = drift(pts[1], pts[2], center, options.maxFrames/4)
+  #sphereCenter = cart2sphere( cartCenter, pts[2] )
+  #sphereCenter = (sphereCenter[0],-sphereCenter[1],sphereCenter[2])
+
+  #render next spiral
   #numImg = options.maxFrames/2
   #dcam = (360/numImg, 0, 0)
   #center = renderSpiral(pts[2], sphereCenter, dcam, numImg)
 
 #mencoder "mf://*.png" -mf fps=18 -o demo.avi -ovc lavc -lavcopts vcodec=msmpeg4v2:vbitrate=24000000
-
+ 

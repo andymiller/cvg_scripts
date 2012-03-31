@@ -3,6 +3,7 @@ import pylab as pl
 import random
 from sklearn import svm, datasets
 from optparse import OptionParser
+from PIL import Image
 import classify_image as ci
 import transImage as ti
 
@@ -22,8 +23,8 @@ class RGBIDataset:
     irPixels = []
     for line in f:
       l = line.split()
-      if not(l[0] == "noclass" or l[0] == "trees"): continue      
-      if l[0]=="noclass" and random.random() > .01: continue
+      #if not(l[0] == "noclass" or l[0] == "trees" or l[0]== "water"): continue      
+      if l[0]=="noclass" and random.random() > .5: continue
 
       #initialize class int
       datClass = l[0]
@@ -41,10 +42,17 @@ class RGBIDataset:
     self.target = np.array(self.target)
     eoPixels = np.array(eoPixels)
     irPixels = np.array(irPixels)
+    self.eoPixels = eoPixels
+    self.irPixels = irPixels
+    print "EO File pixels shape: ", eoPixels.shape
+    self.intToClass = dict((v,k) for k, v in self.classMap.iteritems())
 
     #trasnform IR dataset to just take brightnes (total intensity), and ratios
-    self.data = ti.features(eoPixels, irPixels)
-    print self.data.shape
+    self.reducer = ti.LDAFeatures()
+    self.data = self.reducer.features(eoPixels, irPixels, self.target)
+    
+    #print info
+    print "Data shape: ", self.data.shape
     for c,v in self.classMap.iteritems():
       print c, ":", np.sum(self.target==v), "items in training set"
 
@@ -67,45 +75,76 @@ if __name__ == "__main__":
 
   # we create an instance of SVM and fit out data. We do not scale our
   # data since we want to plot the support vectors
-  svc = svm.SVC(kernel='rbf').fit(X, Y)
-
+  rbf_svc = svm.SVC(kernel='rbf', gamma=0.7).fit(X, Y)
   eoImg = "/home/acm/Dropbox/cvg/MatClass/Annotations/eoImgs/exp_000.png"
   irImg = "/home/acm/Dropbox/cvg/MatClass/Annotations/irImgs/exp_000.png"
-  #ci.classify_pixels(eoImg, irImg, svc, imgs); 
+  #data, pixelZ = ci.classify_pixels(eoImg, irImg, imgs.reducer, rbf_svc, imgs); 
+  #print "Pixel xmin, xmax, ", data[:,0].min(), data[:,0].max()
+  #print "      ymin, ymax, ", data[:,1].min(), data[:,1].max()
+  
+  
+  #DEBUG#####
+  eo = Image.open(eoImg)
+  ir = Image.open(irImg)
+  eoPix = np.float32(eo) / 255.0
+  irPix = np.float32(ir) / 255.0
+  eoDat = eoPix.reshape( (eoPix.shape[0]*eoPix.shape[1], eoPix.shape[2]) )
+  eoDat = eoDat[:,:3]
+  irDat = irPix.reshape( (irPix.shape[0]*irPix.shape[1], 1) )
+  #pl.plot(imgs.eoPixels[:,0], imgs.eoPixels[:,1], "o", c="red", label="File") 
+  #pl.plot(eoDat[:,0], eoDat[:,1], "x", c="blue", label="File")
+  #pl.legend()
+  #pl.show()
 
-  rbf_svc = svm.SVC(kernel='rbf', gamma=0.7).fit(X, Y)
-  poly_svc = svm.SVC(kernel='poly', degree=3).fit(X, Y)
-  lin_svc = svm.LinearSVC().fit(X, Y)
+  #poly_svc = svm.SVC(kernel='poly', degree=3).fit(X, Y)
+  lin_svc =  svm.LinearSVC().fit(X, Y)
+  print "SVM Learned"
 
   # create a mesh to plot in
-  h = .002  # step size in the mesh
+  h = 50  # step size in mesh
   x_min, x_max = X[:, 0].min() - .002, X[:, 0].max() + .002
   y_min, y_max = X[:, 1].min() - .002, X[:, 1].max() + .002
-  xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                       np.arange(y_min, y_max, h))
+  
+  #incorporate pixel data
+  #x_min = min(x_min, data[:,0].min())
+  #x_max = max(x_max, data[:,0].max())
+  #y_min = min(y_min, data[:,1].min())
+  #y_max = max(y_max, data[:,1].max())
+  xx, yy = np.meshgrid(np.arange(x_min, x_max, (x_max-x_min)/h),
+                       np.arange(y_min, y_max, (y_max-y_min)/h))
+  print xx.shape
 
   # title for the plots
+  models = [ rbf_svc ]
   titles = ['SVC with linear kernel',
             'SVC with RBF kernel',
             'SVC with polynomial (degree 3) kernel',
             'LinearSVC (linear kernel)']
   pl.set_cmap(pl.cm.Paired)
-  for i, clf in enumerate((svc, rbf_svc, poly_svc, lin_svc)):
-     # Plot the decision boundary. For that, we will asign a color to each
-     # point in the mesh [x_min, m_max]x[y_min, y_max].
-      pl.subplot(2, 2, i + 1)
-      Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+  for i, clf in enumerate( models ):
+    # Plot the decision boundary. For that, we will asign a color to each
+    # point in the mesh [x_min, m_max]x[y_min, y_max].
+    pl.subplot(1, len(models), i + 1)
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
 
-     # Put the result into a color plot
-      Z = Z.reshape(xx.shape)
-      pl.set_cmap(pl.cm.Paired)
-      pl.contourf(xx, yy, Z)
-      pl.axis('off')
+    # Put the result into a color plot
+    Z = Z.reshape(xx.shape)
+    pl.set_cmap(pl.cm.Paired)
+    pl.contourf(xx, yy, Z)
+    #pl.axis('off')
 
-     # Plot also the training points
-      pl.scatter(X[:, 0], X[:, 1], c=Y)
+    # Plot also the training points
+    colors = ["red", "green", "blue", "yellow", "black"]
+    for c,i in imgs.classMap.iteritems():
+      x = X[Y==i] 
+      pl.plot(x[:,0], x[:,1], "o", c=colors[i], label=c) 
 
-      pl.title(titles[i])
+    #plot image points
+    #pl.plot(data[:,0], data[:,1], "o", c="orange", label="Pixels")
+
+    #legend and title
+    pl.legend()
+    pl.title(titles[i])
 
   pl.show()
 

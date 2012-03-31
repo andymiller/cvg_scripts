@@ -57,7 +57,7 @@ if len(imgs) != len(cams) :
 for p in range(0,NUMPASSES):
 
   #update using every image once
-  frames = range(0,len(imgs)-1)[::options.skip]; 
+  frames = range(0,len(imgs))[::options.skip]; 
   random.shuffle(frames); 
   for idx, i in enumerate(frames): 
     print "Pass: ", p, ", Iteration ", idx, " of ", len(frames)
