@@ -5,32 +5,44 @@ from optparse import OptionParser
 from PIL import Image
 import transImage as ti
 
-def classify_pixels(eoName, irName,reducer,model,dataset=None):
+def classify_pixels(eoName, irName, reducer, model, dataset=None):
+  
+  #grab pixel values from images
   eo = Image.open(eoName)
   ir = Image.open(irName)
   eoPix = np.float32(eo) / 255.0
   irPix = np.float32(ir) / 255.0
-
   eoDat = eoPix.reshape( (eoPix.shape[0]*eoPix.shape[1], eoPix.shape[2]) )
   eoDat = eoDat[:,:3]
   irDat = irPix.reshape( (irPix.shape[0]*irPix.shape[1], 1) )
 
+  #zip pixels into (IR, R, G, B) intensities
+  pixels = np.column_stack( (irDat, eoDat) )
+
   #reduce data
-  data = reducer.features(eoDat, irDat)
-  Z = np.array(model.predict(data))
+  print "dim reducing features"
+  X = reducer.features(pixels)
+  X = X[:,:100]
+
+
+  #print "classifying image"
+  #Z = np.array(model.predict(X))
+  print "Predicting probabilities"
+  Probs = np.array(model.predict_proba(X))
+  print "Probs = ", Probs
 
   #print out classes
   if dataset:
     print "Num pixels classified: "
     for name,val in dataset.classMap.iteritems():
-      print name, np.sum(Z==val)
+      print val, name, np.sum(Z==val)
 
   #shape
-  Z = Z.reshape(irPix.shape)
+  Z = Z.reshape(irPix.shape).astype(np.uint8)
   print "Image shape: ", Z.shape
 
   #try saving it out
   newImg = Image.fromarray(Z)
-  newImg.save("test.tiff")
+  newImg.save("test.png")
 
-  return data, Z 
+  return X, Z 

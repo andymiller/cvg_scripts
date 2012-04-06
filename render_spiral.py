@@ -7,6 +7,11 @@ from optparse import OptionParser
 
 
 def pointsFromFile(fname):
+  """ Point file format:
+      <num points>
+      <x>  <y>  <z>  
+      <x>  <y>  <z>
+  """
   f = open(fname, 'r')
   numPts = int(f.readline())
   print numPts
