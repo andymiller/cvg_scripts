@@ -85,7 +85,7 @@ if __name__ == "__main__":
   globalIdx = 0
   for idx,pt in enumerate(pts):
     cam = create_perspective_camera( (fLength, fLength), ppoint, pt, lookPts[idx] )
-    render_save(cam, globalIdx, trajDir, camDir)
+    render_save(scene, cam, globalIdx, trajDir, camDir)
     globalIdx += 1
 
   #mencoder "mf://*.png" -mf fps=18 -o demo.avi -ovc lavc -lavcopts vcodec=msmpeg4v2:vbitrate=24000000

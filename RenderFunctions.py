@@ -56,7 +56,7 @@ def pathNormals(points):
   return lookPts
 
 
-def render_save(cam, globalIdx, trajDir, camDir):
+def render_save(scene, cam, globalIdx, trajDir, camDir, NI=1280, NJ=720):
   """method for rendering/saving/incrementing globalIdx"""
   #render image/convert to bimg
   expimg = scene.render(cam, NI, NJ);
