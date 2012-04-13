@@ -56,11 +56,6 @@ def pathNormals(points):
   return lookPts
 
 
-    #assume Zdir is 0
-
-    
-
-
 def render_save(cam, globalIdx, trajDir, camDir):
   """method for rendering/saving/incrementing globalIdx"""
   #render image/convert to bimg

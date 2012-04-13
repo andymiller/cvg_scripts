@@ -20,7 +20,7 @@ if __name__ == "__main__":
   parser.add_option("-m", "--maxFrames", action="store", type="int", dest="maxFrames", default=500, help="max number of frames to render")
   parser.add_option("-i", "--incline", action="store", type="float", dest="incline", default="45", help="incline of look direction off tangent of path (determines look point)")
   parser.add_option("-p", "--points", action="store", type="string", dest="pointsFile", default="", help="Include points file as center points of spirals (no file defaults to center of model)")
-  parser.add_optoin("-v", "--visualize", action="store_true", type="bool", dest="visualize", default=False, help="just visualize the path in matplotlib")
+  parser.add_option("-v", "--visualize", action="store_true", type="bool", dest="visualize", default=False, help="just visualize the path in matplotlib")
   (options, args) = parser.parse_args()
   print options
   print args
