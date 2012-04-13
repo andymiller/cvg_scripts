@@ -22,14 +22,15 @@ def classify_pixels(eoName, irName, reducer, model, dataset=None):
   #reduce data
   print "dim reducing features"
   X = reducer.features(pixels)
-  X = X[:,:100]
-
+  #X = X[:,:100]
 
   #print "classifying image"
   #Z = np.array(model.predict(X))
   print "Predicting probabilities"
-  Probs = np.array(model.predict_proba(X))
-  print "Probs = ", Probs
+  probs = np.array(model.predict_proba(X))
+  Z = probs.argmax(1) #grab max value
+  maxProbs = probs.max(1) #grab prob value for each max
+  Z[maxProbs < .9] = -1
 
   #print out classes
   if dataset:
@@ -38,11 +39,11 @@ def classify_pixels(eoName, irName, reducer, model, dataset=None):
       print val, name, np.sum(Z==val)
 
   #shape
-  Z = Z.reshape(irPix.shape).astype(np.uint8)
+  Z = Z.reshape(irPix.shape).astype(float)
   print "Image shape: ", Z.shape
 
   #try saving it out
   newImg = Image.fromarray(Z)
-  newImg.save("test.png")
+  newImg.save("test.tiff")
 
   return X, Z 

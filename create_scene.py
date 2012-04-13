@@ -12,6 +12,7 @@ parser.add_option("-a", "--app",  action="store", type="string", dest="app", def
 parser.add_option("-o", "--out",  action="store", type="string", dest="out", default="", help="if non empty, copy images to this directory")
 parser.add_option("-b", "--bbox", action="store", type="string", dest="bbox", default="", help="Specify bbox: -b 1.2,3.4,2.4 ... If bbox and voxel size are specified, just create scene from that")
 parser.add_option("-v", "--voxelSize", action="store", type="float", dest="voxelSize", default=-1.0, help="voxel size specified")
+parser.add_option("-m", "--maxVoxels", action="store", type="int", dest="maxVoxels", default=-1, help="Specify maximum number of voxels in the scene")
 parser.add_option("-n", "--numBlocks", action="store", type="int", dest="numBlocks", default=8, help="Specify number of blocks n (for n by n scene)")
 (options, args) = parser.parse_args()
 print options
