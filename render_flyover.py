@@ -65,7 +65,7 @@ if __name__ == "__main__":
   print "Trajectory consists of %d points"%len(pts)
   
   #compute look directions for each point
-  lookPts = pathNormals(pts)
+  lookPts = pathNormals(pts, incline)
 
   #visualize trajectory and look dirs
   if options.visualize:

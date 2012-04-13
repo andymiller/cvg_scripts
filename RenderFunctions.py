@@ -13,8 +13,6 @@ import numpy as np;
 #
 ###################################################
 
-
-
 def pointsFromFile(fname):
   """ Point file format:
       <num points>
@@ -31,28 +29,32 @@ def pointsFromFile(fname):
   return pts
 
 
-def pathNormals(points):
+def pathNormals(points, incline=45., smooth=15):
   """ Computes the normal to each point (looking 
       45 degrees off nadir)
   """
   points = np.array(points)
-  lookDirs = np.zeros(points.shape)
   lookPts = np.zeros(points.shape)
 
-  #calculate direction of path (point1-point0)
-  for idx in range(len(points)-1):
-    pdir = points[idx+1] - points[idx]
-    #assume zdir is0
-    pdir[2] = 0.0
-    updir = np.array([0.0, 0.0, 1.0])
-    #norm dir to the "left"
-    normDir = np.cross(pdir, updir)  
-    #lookpoint on the ground
-    lookPt = np.array([points[idx][0], points[idx][1], 0.0]) + points[idx][2]*normDir
-    lookPts[idx] = lookPt
+  # create jagged normdirs (normal from path direction)
+  normDirs = np.zeros(points.shape)
+  for idx in range(1, len(points)-1):
+    pdir = (points[idx+1]-points[idx])
+    updir = np.array([0., 0., 1.])
+    normDirs[idx]=np.cross(pdir, updir)
+  normDirs[0] = normDirs[1]
+  normDirs[-1] = normDirs[-2]
+    
+  # smooth the norm dirs
+  for idx in range(smooth, len(normDirs)-smooth):
+    normDirs[idx] = np.mean(normDirs[idx-smooth:idx+1+smooth],0)
 
-  #last look point just look at previous one
-  lookPts[-1] = lookPts[-2]
+  #calculate lookpoint for each cam center
+  for idx in range(len(points)):
+    #lookpoint on the ground
+    groundDist = points[idx][2] * math.tan(incline/360.*2.*math.pi)
+    lookPt = np.array([points[idx][0], points[idx][1], 0.0]) + groundDist*normDirs[idx]
+    lookPts[idx] = lookPt
   return lookPts
 
 
