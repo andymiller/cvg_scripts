@@ -63,11 +63,11 @@ def render_save(scene, cam, globalIdx, trajDir, camDir, NI=1280, NJ=720):
   #render image/convert to bimg
   expimg = scene.render(cam, NI, NJ);
   bimg   = convert_image(expimg); 
-  exp_fname = trajDir + "/exp_%(#)03d.png"%{"#":globalIdx};
+  exp_fname = trajDir + "/exp_%(#)06d.png"%{"#":globalIdx};
   save_image(bimg, exp_fname); 
 
   #save cam
-  cam_name = camDir + "/cam_%(#)03d.txt"%{"#":globalIdx}
+  cam_name = camDir + "/cam_%(#)06d.txt"%{"#":globalIdx}
   save_perspective_camera(cam, cam_name)
   remove_from_db([cam, expimg, bimg])
 
