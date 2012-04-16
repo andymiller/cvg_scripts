@@ -41,13 +41,18 @@ def pathNormals(points, incline=45., smooth=15):
   for idx in range(1, len(points)-1):
     pdir = (points[idx+1]-points[idx])
     updir = np.array([0., 0., 1.])
-    normDirs[idx]=np.cross(pdir, updir)
+    ndir = np.cross(pdir, updir)
+    mag = np.sqrt(np.sum(np.dot(ndir,ndir)))
+    normDirs[idx] = ndir/mag
+    #normDirs[idx] = norm
+  
   normDirs[0] = normDirs[1]
   normDirs[-1] = normDirs[-2]
-    
+  print np.sqrt(np.sum(normDirs[100]*normDirs[100]))
+
   # smooth the norm dirs
-  for idx in range(smooth, len(normDirs)-smooth):
-    normDirs[idx] = np.mean(normDirs[idx-smooth:idx+1+smooth],0)
+  #for idx in range(smooth, len(normDirs)-smooth):
+  #  normDirs[idx] = np.mean(normDirs[idx-smooth:idx+1+smooth],0)
 
   #calculate lookpoint for each cam center
   for idx in range(len(points)):
