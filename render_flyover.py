@@ -18,15 +18,11 @@ if __name__ == "__main__":
   parser.add_option("-x", "--xmlfile", action="store", type="string", dest="xml", default="model/uscene.xml", help="scene.xml file name (model/uscene.xml, model_fixed/scene.xml, rscene.xml)")
   parser.add_option("-g", "--gpu",   action="store", type="string", dest="gpu",   default="gpu1", help="specify gpu (gpu0, gpu1, etc)")
   parser.add_option("-m", "--maxFrames", action="store", type="int", dest="maxFrames", default=500, help="max number of frames to render")
-  parser.add_option("-i", "--incline", action="store", type="float", dest="incline", default="45", help="incline of look direction off tangent of path (determines look point)")
+  parser.add_option("-i", "--incline", action="store", type="float", dest="incline", default=38.0, help="incline of look direction off tangent of path (determines look point)")
   parser.add_option("-p", "--points", action="store", type="string", dest="pointsFile", default="", help="Include points file as center points of spirals (no file defaults to center of model)")
   parser.add_option("-v", "--visualize", action="store_true", dest="visualize", default=False, help="just visualize the path in matplotlib")
-  parser.add_option("-n", "--numSmooth", action="store", type="int", dest="numSmooth", default=2, help="specify number of points to interpolate between points in trajectory file (for smoothness)")
-  (options, args) = parser.parse_args()
-  print options
-  print args
-
-  #verify points file
+  parser.add_option("-n", "--numBetween", action="store", type="int", dest="numBetween", default=0, help="specify number of points to interpolate between points in trajectory file (for smoothness)")
+  (options, args) = parser
   if not os.path.exists(options.pointsFile):
     print "bad pointsfile: ", options.pointsFile
     sys.exit(-1)
@@ -67,25 +63,8 @@ if __name__ == "__main__":
   print "Trajectory consists of %d points"%len(pts)
 
   #compute dense points
-  numBetween = options.numSmooth - 1
-  if numBetween > 0:
-    numPts = len(pts) + (len(pts)-1)*numBetween
-    densePts = np.zeros((numPts,3))
-    
-    #distribute true points evenly
-    densePts[0::numBetween+1] = pts
-    
-    #create interpolated points
-    for idx in range(0,len(densePts)-numBetween-1,numBetween+1):
-      pt0 = densePts[idx]
-      pt1 = densePts[idx+numBetween+1]
-      dxyz = (pt1 - pt0)/float(numBetween)
-      for ii in range(1,numBetween+1):
-        densePts[idx+ii] = pt0 + dxyz*ii
-  else:
-    densePts = pts
-  print "Dense trajectory consists of %d points"%len(densePts)
-  pts = densePts
+  pts = interpolatePoints(pts, options.numBetween)
+  print "Dense trajectory consists of %d points"%len(pts)
 
   #compute look directions for each point
   lookPts = pathNormals(pts, incline)

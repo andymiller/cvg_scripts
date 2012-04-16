@@ -28,6 +28,30 @@ def pointsFromFile(fname):
     pts.append(pt)
   return pts
 
+def interpolatePoints(pts, numBetween):
+  """ Create linearly interpolated points between each 
+      point in input array 
+  """
+  if numBetween <= 0:
+    return pts
+  #create new vector w/ original points distributed evenly
+  numPts = len(pts) + (len(pts)-1)*numBetween
+  densePts = np.zeros((numPts,3))
+  densePts[0::numBetween+1] = pts
+  
+  #create interpolated points
+  for idx in range(0, numPts-1, numBetween+1):
+    pt0 = densePts[idx]
+    pt1 = densePts[idx+numBetween+1]
+    dxyz = (pt1 - pt0)/float(numBetween+1)
+    for ii in range(1,numBetween+1):
+      densePts[idx+ii] = pt0 + dxyz*ii
+  return densePts
+
+def normalize(a):
+  """Slow normalization function"""
+  mag = np.sqrt(np.sum(np.dot(a,a)))
+  return a/mag
 
 def pathNormals(points, incline=45., smooth=15):
   """ Computes the normal to each point (looking 
@@ -39,20 +63,20 @@ def pathNormals(points, incline=45., smooth=15):
   # create jagged normdirs (normal from path direction)
   normDirs = np.zeros(points.shape)
   for idx in range(1, len(points)-1):
-    pdir = (points[idx+1]-points[idx])
+    pdir = normalize(points[idx+1]-points[idx])
     updir = np.array([0., 0., 1.])
-    ndir = np.cross(pdir, updir)
-    mag = np.sqrt(np.sum(np.dot(ndir,ndir)))
-    normDirs[idx] = ndir/mag
+    ndir = normalize(np.cross(pdir, updir))
+    
+    #try making the angle a little more forward
+    normDirs[idx] = normalize(ndir + pdir)
     #normDirs[idx] = norm
   
   normDirs[0] = normDirs[1]
   normDirs[-1] = normDirs[-2]
-  print np.sqrt(np.sum(normDirs[100]*normDirs[100]))
 
   # smooth the norm dirs
-  #for idx in range(smooth, len(normDirs)-smooth):
-  #  normDirs[idx] = np.mean(normDirs[idx-smooth:idx+1+smooth],0)
+  for idx in range(smooth, len(normDirs)-smooth):
+    normDirs[idx] = np.mean(normDirs[idx-smooth:idx+1+smooth],0)
 
   #calculate lookpoint for each cam center
   for idx in range(len(points)):
