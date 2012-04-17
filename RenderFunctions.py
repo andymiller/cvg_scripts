@@ -53,7 +53,7 @@ def normalize(a):
   mag = np.sqrt(np.sum(np.dot(a,a)))
   return a/mag
 
-def pathNormals(points, incline=45., smooth=15):
+def pathNormals(points, incline=45., smooth=3):
   """ Computes the normal to each point (looking 
       45 degrees off nadir)
   """
@@ -81,7 +81,7 @@ def pathNormals(points, incline=45., smooth=15):
   #calculate lookpoint for each cam center
   for idx in range(len(points)):
     #lookpoint on the ground
-    groundDist = points[idx][2] * math.tan(incline/360.*2.*math.pi)
+    groundDist = points[idx][2] * math.tan(math.radians(incline))
     lookPt = np.array([points[idx][0], points[idx][1], 0.0]) + groundDist*normDirs[idx]
     lookPts[idx] = lookPt
   return lookPts

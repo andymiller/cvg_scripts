@@ -22,7 +22,7 @@ if __name__ == "__main__":
   parser.add_option("-p", "--points", action="store", type="string", dest="pointsFile", default="", help="Include points file as center points of spirals (no file defaults to center of model)")
   parser.add_option("-v", "--visualize", action="store_true", dest="visualize", default=False, help="just visualize the path in matplotlib")
   parser.add_option("-n", "--numBetween", action="store", type="int", dest="numBetween", default=0, help="specify number of points to interpolate between points in trajectory file (for smoothness)")
-  (options, args) = parser
+  (options, args) = parser.parse_args()
   if not os.path.exists(options.pointsFile):
     print "bad pointsfile: ", options.pointsFile
     sys.exit(-1)
