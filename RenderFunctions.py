@@ -50,7 +50,11 @@ def interpolatePoints(pts, numBetween):
 
 def normalize(a):
   """Slow normalization function"""
-  mag = np.sqrt(np.sum(np.dot(a,a)))
+  if a.size == 3:
+    mag = np.sqrt(np.sum(a*a))
+    return a / mag
+  mag = np.sqrt(np.sum(a*a,1))
+  mag = np.tile(mag, (3,1)).T
   return a/mag
 
 def pathNormals(points, incline=45., smooth=3):

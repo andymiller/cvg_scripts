@@ -68,18 +68,19 @@ if __name__ == "__main__":
 
   #compute look directions for each point
   lookPts = pathNormals(pts, incline)
+  lookDirs = normalize(lookPts - pts)
+  lookPts = pts + lookDirs
 
   #visualize trajectory and look dirs
   if options.visualize:
-    pts2d = []
-    for pt in pts:
-      pts2d.append([pt[0], pt[1]])
-    pts2d = np.array(pts2d)
-    plt.plot(pts2d[:,0], pts2d[:,1])
-    #plt.plot(lookPts[:,0], lookPts[:,1], 'ro')
+    #compute unit normal
+    plt.plot(pts[:,0], pts[:,1])
+    for idx,p in enumerate(pts):
+      line = np.array([p[0:2], p[0:2] + lookDirs[idx][0:2]])
+      plt.plot(line[:,0], line[:,1], 'r')
 
     #make start point easy to see
-    plt.plot(pts2d[20,0], pts2d[20,1], 'gs')
+    plt.plot(pts[20,0], pts[20,1], 'gs')
     plt.plot(lookPts[20,0], lookPts[20,1], 'gd')
     
     plt.show()
