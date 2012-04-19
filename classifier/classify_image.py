@@ -30,7 +30,7 @@ def classify_pixels(eoName, irName, reducer, model, dataset=None):
   probs = np.array(model.predict_proba(X))
   Z = probs.argmax(1) #grab max value
   maxProbs = probs.max(1) #grab prob value for each max
-  Z[maxProbs < .9] = -1
+  Z[maxProbs < .99] = -1
 
   #print out classes
   if dataset:

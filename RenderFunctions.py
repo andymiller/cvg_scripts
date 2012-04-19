@@ -57,7 +57,7 @@ def normalize(a):
   mag = np.tile(mag, (3,1)).T
   return a/mag
 
-def pathNormals(points, incline=45., smooth=3):
+def pathNormals(points, incline=45., forwardAngle=45, smooth=3):
   """ Computes the normal to each point (looking 
       45 degrees off nadir)
   """
@@ -66,27 +66,42 @@ def pathNormals(points, incline=45., smooth=3):
 
   # create jagged normdirs (normal from path direction)
   normDirs = np.zeros(points.shape)
+  tanDirs = np.zeros(points.shape)
+  curvature = np.zeros(points.shape)
+  xyCurve = np.zeros((points.shape[0],))
   for idx in range(1, len(points)-1):
-    pdir = normalize(points[idx+1]-points[idx])
+    pdir = normalize(points[idx+1]-points[idx-1])
     updir = np.array([0., 0., 1.])
     ndir = normalize(np.cross(pdir, updir))
-    
-    #try making the angle a little more forward
-    normDirs[idx] = normalize(ndir + pdir)
-    #normDirs[idx] = norm
-  
+    normDirs[idx] = ndir
+    tanDirs[idx] = pdir    
+    curvature[idx] = (points[idx+1] - 2*points[idx] + points[idx-1])/2.
+    xyCurve[idx] = curvature[idx][0]*curvature[idx][0] + curvature[idx][1]*curvature[idx][1]  
+
+  #hack set off by ones
+  tanDirs[0] = tanDirs[1]
+  tanDirs[-1] = tanDirs[-2]
+  curvature[0] = curvature[1]
+  curvature[-1] = curvature[-2]
   normDirs[0] = normDirs[1]
   normDirs[-1] = normDirs[-2]
 
-  # smooth the norm dirs
-  for idx in range(smooth, len(normDirs)-smooth):
-    normDirs[idx] = np.mean(normDirs[idx-smooth:idx+1+smooth],0)
-
-  #calculate lookpoint for each cam center
+  #calculate lookdirs
+  lookDirs = np.zeros(points.shape)
   for idx in range(len(points)):
     #lookpoint on the ground
+    lookDir = tanDirs[idx] + (1 + 100000*xyCurve[idx]) * normDirs[idx] 
+    lookDirs[idx] = normalize(lookDir)    
+
+
+  #smooth look dirs, finally calculate look points
+  for idx in range(smooth, len(normDirs)-smooth):
+    lookDirs[idx] = normalize(np.mean(lookDirs[idx-smooth:idx+1+smooth],0))
+
+  #calculate look dirs
+  for idx in range(len(points)):
     groundDist = points[idx][2] * math.tan(math.radians(incline))
-    lookPt = np.array([points[idx][0], points[idx][1], 0.0]) + groundDist*normDirs[idx]
+    lookPt = np.array([points[idx][0], points[idx][1], 0.0]) + groundDist * lookDirs[idx]
     lookPts[idx] = lookPt
   return lookPts
 
