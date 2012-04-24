@@ -7,41 +7,6 @@ from PIL import Image
 import classify_image as ci
 import transImage as ti
 
-class RGBIDataset:
-  """ Load dataset from flat file - has data and target """
-  def __init__(self, fname):
-    self.classes = []
-    self.target =[] 
-    self.classMap = {}
-    self.load_flat_file(fname)
-
-  def load_flat_file(self,fname):
-    f = open(fname, 'r')
-    pixels = []
-    for line in f:
-      l = line.split()
-      datClass = l[0]
-      if datClass == "noclass": continue
-      #if l[0]=="noclass" and random.random() > .5: continue
-
-      #initialize class-int map (string to int)
-      if not self.classMap.has_key(datClass):
-        self.classMap[datClass] = len(self.classMap)
-
-      #keep track of string names, equivalent int, and float data
-      self.classes.append( l[0] )
-      self.target.append( self.classMap[datClass] )
-      pixels.append( [float(x) for x in l[1:]] );
-
-    #numpy arrays
-    self.classes = np.array(self.classes)
-    self.target = np.array(self.target)
-    self.pixels = np.array(pixels)
-    
-    #reverse class map (int to class)
-    self.intToClass = dict((v,k) for k, v in self.classMap.iteritems())
-
-
 
 def plot_classifier(X, Y, models, classMap=None):
   """ Plots classifier or classifiers on 2d plot """

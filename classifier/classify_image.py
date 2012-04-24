@@ -1,49 +1,38 @@
 import numpy as np
 import pylab as pl
-from sklearn import svm, datasets
-from optparse import OptionParser
 from PIL import Image
-import transImage as ti
+import os, sys, pickle
+from glob import glob
+from utils import classify_pixels
 
-def classify_pixels(eoName, irName, reducer, model, dataset=None):
-  
-  #grab pixel values from images
-  eo = Image.open(eoName)
-  ir = Image.open(irName)
-  eoPix = np.float32(eo) / 255.0
-  irPix = np.float32(ir) / 255.0
-  eoDat = eoPix.reshape( (eoPix.shape[0]*eoPix.shape[1], eoPix.shape[2]) )
-  eoDat = eoDat[:,:3]
-  irDat = irPix.reshape( (irPix.shape[0]*irPix.shape[1], 1) )
+#### MAIN: classifies pixels for input image ########
+if __name__ == "__main__":
+  if len(sys.argv) < 4: 
+    print "Usage: classifyPixels.py model.svm imageEO imageIR"
+    sys.exit(-1)
 
-  #zip pixels into (IR, R, G, B) intensities
-  pixels = np.column_stack( (irDat, eoDat) )
+  # grab args
+  modelFile = sys.argv[1]
+  eoName = sys.argv[2]
+  irName = sys.argv[3]
 
-  #reduce data
-  print "dim reducing features"
-  X = reducer.features(pixels)
-  #X = X[:,:100]
+  # make image list
+  if os.path.isdir(eoName) and os.path.isdir(irName):
+    print "classifying every image in dataset"
+    eoFiles = glob.glob(eoName + "/*.png")
+    irFiles = glob.glob(irName + "/*.png")
+    assert len(eoFiles) == len(irFiles)
+  else: 
+    eoFiles = [eoName]
+    irFiles = [irName]
 
-  #print "classifying image"
-  #Z = np.array(model.predict(X))
-  print "Predicting probabilities"
-  probs = np.array(model.predict_proba(X))
-  Z = probs.argmax(1) #grab max value
-  maxProbs = probs.max(1) #grab prob value for each max
-  Z[maxProbs < .99] = -1
+  # load model 
+  inFile = open(modelFile, 'rb')
+  model = pickle.load(inFile)
+  reducer = pickle.load(inFile)
 
-  #print out classes
-  if dataset:
-    print "Num pixels classified: "
-    for name,val in dataset.classMap.iteritems():
-      print val, name, np.sum(Z==val)
+  # runo n each file
+  for idx in range(len(eoFiles)):
+    data, pixelZ, img = classify_pixels(eoFiles[idx], irFiles[idx], reducer, model); 
+    img.save("class_img_%d.tiff"%idx )
 
-  #shape
-  Z = Z.reshape(irPix.shape).astype(float)
-  print "Image shape: ", Z.shape
-
-  #try saving it out
-  newImg = Image.fromarray(Z)
-  newImg.save("test.tiff")
-
-  return X, Z 
