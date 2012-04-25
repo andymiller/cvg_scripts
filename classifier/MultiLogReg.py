@@ -1,15 +1,17 @@
 import numpy as np
 import pylab as pl
-from sklearn import svm, datasets
+from LogReg import LogReg
+from sklearn import datasets
 
-class MultiSVM():
-    """ Multi class SVM that trains independent, binary 
+class MultiLogReg():
+    """ Multi class logistic regression that trains independent, binary 
         classifiers for each class 
     """
     def __init__(self):
         pass
 
     def fit(self, x_train, y_train):
+        """ Assumes classes are encoded starting at 0 """
         # Set the data.
         self.n = y_train.shape[0]
         self.classes = set(y_train)
@@ -20,10 +22,10 @@ class MultiSVM():
           #create two class training set
           y_c = np.copy(y_train)
           y_c[y_c!=c] = -1
-          y_c[y_c==c] = 0
-          y_c[y_c==-1] = 1
+          y_c[y_c==c] = 1
           #train model
-          model = svm.SVC(kernel='rbf', gamma=0.7, probability=True).fit(x_train, y_c)
+          model = LogReg()
+          model.fit(x_train, y_c)
           self.classifiers.append(model)
 
     def predict_proba(self, x_test):
@@ -34,7 +36,11 @@ class MultiSVM():
         for idx in range(len(self.classes)):
           model = self.classifiers[idx]
           positiveProb = np.array(model.predict_proba(x_test))
-          p_y[:,idx] = positiveProb[:,0]
+          print "Class: ",idx
+          print positiveProb
+          print positiveProb.shape
+          print p_y.shape
+          p_y[:,idx] = positiveProb[:]
         
         #be sure to calculate the null category
         p_y[:,-1] = np.mean(1.0-p_y[:,1:-2])
@@ -44,6 +50,8 @@ class MultiSVM():
         probas = self.predict_proba(x_test)
         return probas.argmax(1)
 
+
+# Test on synthetic data
 if __name__ == "__main__":
     from pylab import *
 
@@ -52,7 +60,7 @@ if __name__ == "__main__":
     X, y = datasets.make_blobs()
 
     #train svm
-    clf = MultiSVM()
+    clf = MultiLogReg()
     clf.fit(X,y)
     
     # Plot the decision boundary. For that, we will asign a color to each
@@ -70,6 +78,6 @@ if __name__ == "__main__":
 
     # Plot also the training points
     pl.scatter(X[:, 0], X[:, 1], c=y)
-    pl.title('MultiSVM')
+    pl.title('Multi Logistic Regression')
     pl.axis('tight')
     pl.show()

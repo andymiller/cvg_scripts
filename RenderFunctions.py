@@ -92,7 +92,7 @@ def pathNormals(points, incline=45., forwardAngle=45, smooth=3):
     #lookpoint on the ground
     lookDir = tanDirs[idx] + (1 + 100000*xyCurve[idx]) * normDirs[idx] 
     lookDirs[idx] = normalize(lookDir)    
-
+    lookDirs[idx] = normDirs[idx]
 
   #smooth look dirs, finally calculate look points
   for idx in range(smooth, len(normDirs)-smooth):

@@ -59,9 +59,7 @@ class LogReg():
     def predict_proba(self, x_test):
         """ computes probabilities given features x_test
         """
-        p_y = np.zeros(self.n)
-        for i in range(self.n):
-            p_y[i] = sigmoid(np.dot(self.betas, x_test[i,:]))
+        p_y = sigmoid( np.sum(self.betas*x_test, 1) )
         return p_y
 
     def predict(self, x_test):

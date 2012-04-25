@@ -5,8 +5,9 @@ from sklearn import svm, datasets
 from optparse import OptionParser
 from utils import RGBIDataset, plot_classifier
 import Features
-from Features import LDAFeatures, PCAFeatures
+from Features import LDAFeatures, PCAFeatures, NaiveFeatures
 from LogReg import LogReg
+from MultiLogReg import MultiLogReg
 from MultiSVM import MultiSVM
 
 if __name__ == "__main__":
@@ -44,16 +45,11 @@ if __name__ == "__main__":
     reducer = PCAFeatures()
     X = reducer.features(pixels)
     model = svm.SVC(kernel="rbf", gamma=0.7, probability=True).fit(X,Y)
-  if options.modelType=="logreg":
-    print "Log reg not yet implemented"
-    #X = Features.naive_features(pixels)
-    #Y[Y!=0] = -1
-    #Y[Y==0] = 1
-    #model = LogReg()
-    #model.fit(X,Y)
-    #Yt = model.predict(X)
-    #correct = np.sum(Y==Yt)
-    #print "Accuracy: ", float(correct)/len(Y)
+  if options.modelType=="ilogreg":
+    reducer = NaiveFeatures()
+    X = reducer.features(pixels)
+    model = MultiLogReg()
+    model.fit(X,Y)
   if options.modelType=="isvm" or options.modelType=="isvm_lda":
     reducer = LDAFeatures()
     X = reducer.features(pixels, Y)

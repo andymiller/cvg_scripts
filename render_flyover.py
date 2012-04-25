@@ -71,6 +71,11 @@ if __name__ == "__main__":
   lookDirs = normalize(lookPts - pts)
   lookPts = pts + lookDirs
 
+  #make points sparser
+  pts = pts[0::50]
+  lookPts = lookPts[0::50]
+  lookDirs = lookDirs[0::50]
+
   #visualize trajectory and look dirs
   if options.visualize:
     #compute unit normal
@@ -80,8 +85,8 @@ if __name__ == "__main__":
       plt.plot(line[:,0], line[:,1], 'r')
 
     #make start point easy to see
-    plt.plot(pts[20,0], pts[20,1], 'gs')
-    plt.plot(lookPts[20,0], lookPts[20,1], 'gd')
+    #plt.plot(pts[20,0], pts[20,1], 'gs')
+    #plt.plot(lookPts[20,0], lookPts[20,1], 'gd')
     
     plt.show()
     sys.exit(-1)

@@ -3,9 +3,14 @@ import pylab as pl
 from sklearn.decomposition import PCA
 from sklearn.lda import LDA
 
+"""
+Feature transform classes (reducers).  Takes RGBI data and returns 
+either reduced by LDA/PCA or just naive features.
+
+Naive features are normalized pixel intensities and differences
+"""
 
 class LDAFeatures:
-
   def __init__(self):
     self.lda = None
 
@@ -28,6 +33,10 @@ class PCAFeatures:
     self.pca = PCA(n_components=2).fit(fullFeatures)
     return self.pca.transform(fullFeatures)
 
+class NaiveFeatures:
+  def features(self, pixels):
+    fullFeatures = naive_features(pixels)
+    return fullFeatures
 
 
 def naive_features(pixels):

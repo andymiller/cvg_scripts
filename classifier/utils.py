@@ -45,7 +45,7 @@ class RGBIDataset:
     sortedKeys = sorted(tempMap.iterkeys())
     if "noclass" in sortedKeys:
       sortedKeys.remove("noclass")
-      sortedKeys.append("noclass")
+      #sortedKeys.append("noclass")
     for key in sortedKeys:
       self.target[self.classes==key] = count
       self.intToClass.append(key)

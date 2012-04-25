@@ -6,6 +6,18 @@ from Features import LDAFeatures, PCAFeatures
 from utils import RGBIDataset, plot_classifier
 from optparse import OptionParser
 
+
+def printConfusionMatrix(mat, labels):
+  assert mat.shape[0] == len(labels)
+  labMat = [ ["   "]+labels ]
+  for idx, row in enumerate(mat):
+    r = [ labels[idx]+"_true" ] 
+    for n in row:
+      r.append(n)
+    labMat.append(r)
+  print labMat
+
+
 ###### MAIN ######
 if __name__ == "__main__":
   # handle inputs
@@ -37,7 +49,8 @@ if __name__ == "__main__":
   #confusion matrix and accuracy
   Y_pred = probs.argmax(1)
   confMat = metrics.confusion_matrix(Y, Y_pred)
-  print confMat
+  printConfusionMatrix(confMat, testing.intToClass)
+
   for c in range(numClasses):
     correct = float(np.sum(Y_pred[Y==c]==c))
     num = float(np.sum(Y==c))
@@ -51,7 +64,9 @@ if __name__ == "__main__":
     print y_binary
     scores = probs[:,c]
     fpr, tpr, thresholds = metrics.roc_curve(y_binary, scores)
-    pl.plot(fpr, tpr, label=testing.intToClass[c])
+    auc = metrics.auc(fpr, tpr)
+    lab = "%s auc: %f"%(testing.intToClass[c], auc)
+    pl.plot(fpr, tpr, label=lab)
   pl.legend()
   pl.show()
 
