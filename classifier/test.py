@@ -5,7 +5,23 @@ from sklearn import svm, metrics
 from Features import LDAFeatures, PCAFeatures
 from utils import RGBIDataset, plot_classifier
 from optparse import OptionParser
+import StringIO, locale
+locale.setlocale(locale.LC_NUMERIC, "")
 
+def format_num(num):
+    """Format a number according to given places.
+    Adds commas, etc. Will truncate floats into ints!"""
+
+    try:
+        inum = int(num)
+        return locale.format("%.*f", (0, inum), True)
+
+    except (ValueError, TypeError):
+        return str(num)
+
+def get_max_width(table, index):
+    """Get the maximum width of the given column index"""
+    return max([len(format_num(row[index])) for row in table])
 
 def printConfusionMatrix(mat, labels):
   assert mat.shape[0] == len(labels)
@@ -15,7 +31,22 @@ def printConfusionMatrix(mat, labels):
     for n in row:
       r.append(n)
     labMat.append(r)
-  print labMat
+
+  #get column paddings
+  col_paddings = []
+  for i in range(len(labMat[0])):
+    col_paddings.append(get_max_width(labMat, i))
+  
+  out = StringIO.StringIO()
+  for row in labMat:
+    # left col
+    print >> out, row[0].ljust(col_paddings[0] + 1),
+    # rest of the cols
+    for i in range(1, len(row)):
+      col = format_num(row[i]).rjust(col_paddings[i] + 2)
+      print >> out, col,
+    print >> out 
+  print out.getvalue()  
 
 
 ###### MAIN ######

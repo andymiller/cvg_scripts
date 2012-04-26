@@ -23,11 +23,12 @@ class MultiSVM():
           y_c[y_c==c] = 0
           y_c[y_c==-1] = 1
           #train model
-          model = svm.SVC(kernel='rbf', gamma=0.7, probability=True).fit(x_train, y_c)
+          model = svm.SVC(kernel='rbf', gamma=.7, probability=True).fit(x_train, y_c)
           self.classifiers.append(model)
 
     def predict_proba(self, x_test):
-        """ computes probabilities given features x_test
+        """ computes probabilities given features x_test/model trained.
+            Model computes p(x | category=k).  
         """
         nTest = x_test.shape[0]
         p_y = np.zeros( (nTest, len(self.classes)+1) )
@@ -36,8 +37,8 @@ class MultiSVM():
           positiveProb = np.array(model.predict_proba(x_test))
           p_y[:,idx] = positiveProb[:,0]
         
-        #be sure to calculate the null category
-        p_y[:,-1] = np.mean(1.0-p_y[:,1:-2])
+        #be sure to estimate the null category
+        p_y[:,-1] = np.mean(1.0-p_y[:,0:-1], 1)
         return p_y
 
     def predict(self, x_test):

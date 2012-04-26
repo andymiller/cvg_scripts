@@ -14,7 +14,7 @@ class LDAFeatures:
   def __init__(self):
     self.lda = None
 
-  def features(self, pixels, gt=None):
+  def features(self, pixels, gt=None, n_comp=4):
     #grab feature stack
     fullFeatures = naive_features(pixels)
 
@@ -24,7 +24,7 @@ class LDAFeatures:
     assert gt != None
 
     #otherwise, train LDA
-    self.lda = LDA(n_components=2).fit(fullFeatures,gt)
+    self.lda = LDA(n_components=n_comp).fit(fullFeatures,gt)
     return self.lda.transform(fullFeatures)
 
 class PCAFeatures:
