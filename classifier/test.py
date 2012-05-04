@@ -1,60 +1,21 @@
 import numpy as np
 import pylab as pl
-import random, types, pickle
+import sys, random, types, pickle
 from sklearn import svm, metrics
 from Features import LDAFeatures, PCAFeatures
 from utils import RGBIDataset, plot_classifier
 from optparse import OptionParser
-import StringIO, locale
-locale.setlocale(locale.LC_NUMERIC, "")
-
-def format_num(num):
-    """Format a number according to given places.
-    Adds commas, etc. Will truncate floats into ints!"""
-
-    try:
-        inum = int(num)
-        return locale.format("%.*f", (0, inum), True)
-
-    except (ValueError, TypeError):
-        return str(num)
-
-def get_max_width(table, index):
-    """Get the maximum width of the given column index"""
-    return max([len(format_num(row[index])) for row in table])
-
-def printConfusionMatrix(mat, labels):
-  assert mat.shape[0] == len(labels)
-  labMat = [ ["   "]+labels ]
-  for idx, row in enumerate(mat):
-    r = [ labels[idx]+"_true" ] 
-    for n in row:
-      r.append(n)
-    labMat.append(r)
-
-  #get column paddings
-  col_paddings = []
-  for i in range(len(labMat[0])):
-    col_paddings.append(get_max_width(labMat, i))
-  
-  out = StringIO.StringIO()
-  for row in labMat:
-    # left col
-    print >> out, row[0].ljust(col_paddings[0] + 1),
-    # rest of the cols
-    for i in range(1, len(row)):
-      col = format_num(row[i]).rjust(col_paddings[i] + 2)
-      print >> out, col,
-    print >> out 
-  print out.getvalue()  
+from Eval import *
 
 
 ###### MAIN ######
 if __name__ == "__main__":
+  
   # handle inputs
   parser = OptionParser()
   parser.add_option("-d", "--testData", action="store", type="string", dest="data", default="", help="Specify testing data file")
   parser.add_option("-m", "--model", action="store", type="string", dest="model", default="", help="Specify input model to plot/test (e.g. svc_rbf.svm)")
+  parser.add_option("-v", "--visualize", action="store_true", dest="visualize", default=False, help="Visualize results of material classifier")
   (options, args) = parser.parse_args()
 
   # import some data to play with
@@ -66,22 +27,46 @@ if __name__ == "__main__":
   inFile = open(options.model, 'rb')
   model = pickle.load(inFile)
   reducer = pickle.load(inFile)
+  pixelType = pickle.load(inFile)
+  print "Testing on pixel type: ", pixelType
+
+  #grab appropriate pixels
+  if pixelType == "all":
+    pixels = pixels
+  elif pixelType == "EO":
+    pixels = pixels[:,1:4]
+  elif pixelType == "IR": 
+    pixels = pixels[:,0]
+  else:
+    print "Unrecognized type %s !!!!"%pixelType
+    sys.exit(-1)
 
   #reduce pixel features
   X = reducer.features(pixels)
-  print "Data shape: ", X.shape
   for c,v in testing.classMap.iteritems():
     print "%s (%d): %d items in training set"%(c,v,np.sum(Y==v))
  
   # PREDICT
   probs = np.array(model.predict_proba(X))
   numClasses = probs.shape[1]
+  
+  #visualize model if called for
+  if options.visualize:
+    y_graph = Y[testing.classes!="noclass"]
+    x_graph = X[testing.classes!="noclass"]
+    print "shapes: ", y_graph.shape, x_graph.shape
+    plot_classifier(x_graph, y_graph, model, testing.classMap)
 
   #confusion matrix and accuracy
   Y_pred = probs.argmax(1)
   confMat = metrics.confusion_matrix(Y, Y_pred)
   printConfusionMatrix(confMat, testing.intToClass)
+  
+  #classification report?
+  report = metrics.classification_report(Y, Y_pred, target_names=testing.intToClass)
+  print report
 
+  # print accuracy
   for c in range(numClasses):
     correct = float(np.sum(Y_pred[Y==c]==c))
     num = float(np.sum(Y==c))
@@ -100,4 +85,5 @@ if __name__ == "__main__":
     pl.plot(fpr, tpr, label=lab)
   pl.legend()
   pl.show()
+
 

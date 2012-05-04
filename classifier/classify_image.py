@@ -31,8 +31,11 @@ if __name__ == "__main__":
   model = pickle.load(inFile)
   reducer = pickle.load(inFile)
 
+  #establish colors: 
+  colors = ["gray", "green", "teal", "black"]
+
   # runo n each file
   for idx in range(len(eoFiles)):
-    data, pixelZ, img = classify_pixels(eoFiles[idx], irFiles[idx], reducer, model); 
-    img.save("class_img_%d.tiff"%idx )
+    img = classify_pixels(eoFiles[idx], irFiles[idx], reducer, model, colors); 
+    img.save("class_img_%d.png"%idx )
 

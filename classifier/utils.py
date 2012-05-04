@@ -1,6 +1,6 @@
 import numpy as np
 import pylab as pl
-from PIL import Image
+from PIL import Image, ImageColor
 import random, types, pickle
 
 class RGBIDataset:
@@ -71,7 +71,7 @@ def plot_classifier(X, Y, models, classMap=None):
   colors = ["red", "green", "blue", "yellow", "black"]
 
   # create a mesh to plot in
-  h = 50  # step size in mesh
+  h = 500  # step size in mesh
   x_min, x_max = X[:, 0].min() - .002, X[:, 0].max() + .002
   y_min, y_max = X[:, 1].min() - .002, X[:, 1].max() + .002
   xx, yy = np.meshgrid(np.arange(x_min, x_max, (x_max-x_min)/h),
@@ -103,7 +103,9 @@ def plot_classifier(X, Y, models, classMap=None):
   pl.show()
 
 
-def classify_pixels(eoName, irName, reducer, model, dataset=None):
+
+
+def classify_pixels(eoName, irName, reducer, model, colors=None):
   """ Creates and returns a PIL image with classes based on pixel values """ 
   #grab pixel values from images
   eo = Image.open(eoName)
@@ -118,14 +120,23 @@ def classify_pixels(eoName, irName, reducer, model, dataset=None):
   pixels = np.column_stack( (irDat, eoDat) )
   X = reducer.features(pixels)
 
-  print "classifying image ", eoName
+  #predict each pixel
   probs = np.array(model.predict_proba(X))
   Z = probs.argmax(1) #grab max value
-  maxProbs = probs.max(1) #grab prob value for each max
 
-  #shape
-  Z = Z.reshape(irPix.shape).astype(float)
-  newImg = Image.fromarray(Z)
-  return X, Z, newImg 
+  #greyscale image (just class values)
+  if not colors:
+    img = Z.reshape(irPix.shape).astype("uint8")
+    return Image.fromarray(img)
 
+  #color image (color per class)
+  numClasses = len(set(Z))
+  print "EO Array shape", eoDat.shape
+  print "EO Img shape: ", eoPix.shape
+  cImg = np.zeros(eoDat.shape, dtype="uint8")
+  for c in range(numClasses):
+    print "Class %d, color %s"%(c, colors[c])
+    cImg[Z==c] = ImageColor.getrgb(colors[c])
+  cImg = cImg.reshape( (eoPix.shape[0], eoPix.shape[1], 3) ).astype("uint8")
+  return Image.fromarray(cImg)
 
