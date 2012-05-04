@@ -36,14 +36,10 @@ class MultiLogReg():
         for idx in range(len(self.classes)):
           model = self.classifiers[idx]
           positiveProb = np.array(model.predict_proba(x_test))
-          print "Class: ",idx
-          print positiveProb
-          print positiveProb.shape
-          print p_y.shape
           p_y[:,idx] = positiveProb[:]
         
         #be sure to calculate the null category
-        p_y[:,-1] = np.mean(1.0-p_y[:,1:-2])
+        p_y[:,-1] = np.mean(1.0-p_y[:,0:-1],1)
         return p_y
 
     def predict(self, x_test):
