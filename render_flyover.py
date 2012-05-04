@@ -66,15 +66,14 @@ if __name__ == "__main__":
   pts = interpolatePoints(pts, options.numBetween)
   print "Dense trajectory consists of %d points"%len(pts)
 
+  #move cam centers in normal direction
+  normDirs = pathNormals(pts, smooth=20)
+  pts = pts-normDirs*7
+
   #compute look directions for each point
-  lookPts = pathNormals(pts, incline)
+  lookPts = pathLookPts(pts, incline)
   lookDirs = normalize(lookPts - pts)
   lookPts = pts + lookDirs
-
-  #make points sparser
-  pts = pts[0::50]
-  lookPts = lookPts[0::50]
-  lookDirs = lookDirs[0::50]
 
   #visualize trajectory and look dirs
   if options.visualize:
@@ -94,6 +93,11 @@ if __name__ == "__main__":
   #render from each points viewpoint
   globalIdx = 0
   for idx,pt in enumerate(pts):
+    if idx < 300 or idx > 700 : 
+      globalIdx += 1
+      continue
+    
+    print "RENDERING # %d of %d"%(idx, len(pts))
     cam = create_perspective_camera( (fLength, fLength), ppoint, pt, lookPts[idx] )
     render_save(scene, cam, globalIdx, trajDir, camDir)
     globalIdx += 1

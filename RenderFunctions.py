@@ -57,7 +57,24 @@ def normalize(a):
   mag = np.tile(mag, (3,1)).T
   return a/mag
 
-def pathNormals(points, incline=45., forwardAngle=45, smooth=3):
+def pathNormals(pts, smooth=1):
+  """XY normal to each point"""
+  points = np.array(pts)
+  normDirs = np.zeros(points.shape)
+  for idx in range(1, len(points)-1):
+    pdir = normalize(points[idx+1] - points[idx-1])
+    updir = np.array([0., 0., 1.])
+    ndir = normalize(np.cross(pdir, updir))
+    normDirs[idx] = ndir
+  normDirs[0] = normDirs[1]
+  normDirs[-1] = normDirs[-2]
+ 
+  #smooth look dirs, finally calculate look points
+  for idx in range(smooth, len(normDirs)-smooth):
+    normDirs[idx] = normalize(np.mean(normDirs[idx-smooth:idx+1+smooth],0))
+  return normDirs
+
+def pathLookPts(points, incline=45., forwardAngle=45, smooth=20):
   """ Computes the normal to each point (looking 
       45 degrees off nadir)
   """
